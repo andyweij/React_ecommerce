@@ -1,5 +1,9 @@
 import React, { Component } from 'react';
 import axios from "axios";
+import 'bootstrap/dist/css/bootstrap.css';
+import { Container, Row, Col ,Form } from 'react-bootstrap';
+import FormControl from 'react-bootstrap/FormControl';
+import Button from 'react-bootstrap/Button';
 
 const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/queryGoodsSalesDAO';
 
@@ -7,7 +11,7 @@ class SalesReport extends Component {
     state = {
         startDate:'',
         endDate:'',
-        currentPageNo:'1',
+        currentPageNo:1,
         pagination:[{}],
         goodsReportSalesList:[{
         "orderId": '',
@@ -77,12 +81,28 @@ onChangePage=(e) => {
             goodsReportSalesList,startDate,endDate,pagination,currentPageNo,genericPageable
         }=this.state;
         return (
-            <div>
-                <label>查詢日期起：</label> <input type='date' onChange={this.onChangeStartDate}/>{startDate}
-                <label style={{ marginLeft: '20px' }} />
-                <label>查詢日期迄：</label> <input type='date' onChange={this.onChangeendDate}/>{endDate}
-                <label style={{ marginLeft: '20px' }} />
-                <button onClick={this.onClickSearch}>查詢</button>
+            <Container>
+            <Form.Row>
+            <Form.Group as={Col} controlId="formDate">
+                        <Form.Label>查詢日期起：</Form.Label>
+                        <Form.Control required type="date" name='date_of_birth' 
+                            onChange={this.onChangeStartDate} />
+                        <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group as={Col} controlId="formDate">
+                        <Form.Label>查詢日期迄：</Form.Label>
+                        <Form.Control required type="date" name='date_of_birth' 
+                            onChange={this.onChangeendDate} />
+                        <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
+                    </Form.Group>
+                    </Form.Row>
+                {/* <label>查詢日期起：</label> <input type='date' onChange={this.onChangeStartDate}/>
+                <label style={{ marginLeft: '20px' }} /> */}
+                {/* <label>查詢日期迄：</label> <input type='date' onChange={this.onChangeendDate}/>
+                <label style={{ marginLeft: '20px' }} /> */}
+                <Button variant="primary" onClick={this.onClickSearch}>查詢</Button>
                 <hr />
                 <table border={'2'}>
                     <thead>
@@ -136,7 +156,8 @@ onChangePage=(e) => {
                 </td>
                 </div>    
                 
-            </div>
+            
+            </Container>
         );
     }
 }
