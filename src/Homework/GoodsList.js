@@ -113,7 +113,7 @@ class GoodsList extends Component {
        
         return (
             <Container>
-            <div>
+           
             <Form.Row>
                 <Form.Group as={Col} controlId="formGoodID">
                         <Form.Label>商品編號:</Form.Label>
@@ -226,10 +226,11 @@ class GoodsList extends Component {
                         <button disabled={true} onClick={() => this.onChangePage(currentPageNo - 1)}>{'<'}</button> :
                         <button disabled={false} onClick={() => this.onChangePage(currentPageNo - 1)}>{'<'}</button>}
                     </td>
-                    {pagination.length === 1 ? '' : pagination.map((p) =>
+                    {pagination.length === 1 ? '' : pagination.map((p,index) =>
                         p === currentPageNo ?
-                            <td key={p.index}><button disabled={true} onClick={() => this.onChangePage(p)}><u><b>{`${p}`}</b></u></button></td> :
-                            <td key={p.index}><button disabled={false} onClick={() => this.onChangePage(p)}>{`${p}`}</button></td>
+                        
+                            <td key={p}><button  disabled={true} onClick={() => this.onChangePage(p)}><u><b>{`${p}`}</b></u></button></td> :
+                            <td key={p}><button  disabled={false} onClick={() => this.onChangePage(p)}>{`${p}`}</button></td>
                     )}
                     <td >{currentPageNo >= genericPageable.endPage ?
                         <button disabled={true} onClick={() => this.onChangePage(currentPageNo + 1)}>{'>'}</button> :
@@ -241,7 +242,7 @@ class GoodsList extends Component {
                     </td>
                     </tr>
                 </div>
-            </div>
+            
             </Container>
         );
        

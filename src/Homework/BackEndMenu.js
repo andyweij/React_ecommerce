@@ -10,6 +10,8 @@ import FormControl from 'react-bootstrap/FormControl';
 import CreateGoods from './CreateGoods';
 import GoodsList from './GoodsList';
 import SalesReport from './SalesReport';
+import UpdateGood from './UpdateGood';
+
 class BackEndMenu extends Component {
     render() {
         return (
@@ -20,23 +22,22 @@ class BackEndMenu extends Component {
                     <Navbar.Toggle aria-controls="navbarScroll" />
                     <Navbar.Collapse id="navbarScroll">
                         <Nav className="mr-auto">
-                            {/* to 路徑對應 Route path */}
-                            <Nav.Link as={Link} to="/">App</Nav.Link>
+                            {/* to 路徑對應 Route path */}                            
                             <Nav.Link as={Link} to="/GoodsList">商品列表</Nav.Link>
                             <Nav.Link as={Link} to="/CreateGoods">新增商品</Nav.Link>
-                            <Nav.Link as={Link} to="/SalesReport">銷售報表</Nav.Link>
-                        </Nav>
-                       
+                            <Nav.Link as={Link} to="/UpdateGood">商品更新</Nav.Link>
+                            <Nav.Link as={Link} to="/SalesReport">銷售報表</Nav.Link>                            
+                        </Nav>   
                     </Navbar.Collapse>
                 </Navbar>
                 <Routes>
                     <Route path="GoodsList" element={<GoodsList />} />
                     <Route path="CreateGoods" element={<CreateGoods />} />
-                    <Route path="SalesReport" element={<SalesReport />}>
+                    <Route path="SalesReport" element={<SalesReport />}/>
+                    <Route path="UpdateGood" element={<UpdateGood />}>
                     </Route>
                 </Routes>
-            </BrowserRouter>
-                
+            </BrowserRouter>                
             </Container>
         );
     }

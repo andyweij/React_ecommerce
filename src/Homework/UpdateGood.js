@@ -6,18 +6,19 @@ import { Container, Row, Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/createGoods';
+const queryUrl='http://localhost:8086/ecommerce/ecommerce/BackendController/queryAllGoods';
+const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/updateGoods';
 
-class CreateGoods extends Component {   
-    state = {
-        goodsId:0,
+
+class UpdateGood extends Component {
+     state = {      
+        goodsID:0,
         goodsName: '',
-        goodsPrice: '',
+        goodsPrice: '0',
         goodsQuantity: 0,
         status: '',
         description:'',
         goodsImageName: '',
-        fileName:'',
         imgUrl: '',
         beverageGoods: [{
             "goodsId": '',
@@ -29,13 +30,44 @@ class CreateGoods extends Component {
             "description": ''
         }],
     }
+    constructor(props) {
+        super(props);
+        this.goodsList()
+    }
 
-    onChangeGoodsName=(e)=>{
+    componentDidMount() {
+
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+
+    }
+
+    componentWillUnmount() {
+
+    }
+
+    goodsList = async()=>{
+        
+        const goodsdata = await axios.get(queryUrl).then(rs => rs.data);
+        console.log("beverageGoods:", goodsdata);
+        this.setState({
+            beverageGoods: goodsdata,
+        });
+    }
+
+    onChangeGoodsInfo=(e)=>{
         
         this.setState({
-            goodsName:e.target.value
+            goodsID:e.goodsId,
+            goodsName:e.goodsName,
+            goodsPrice:e.goodsPrice,
+            goodsQuantity:e.goodsQuantity,
+            description:e.description,
+            status:e.status,
+            
         });
-        console.log("status:",this.state.goodsName);
+        console.log("status:",this.state.goodsID);
     };
     onChangeGoodsPrice=(e)=>{
         this.setState({
@@ -66,7 +98,7 @@ class CreateGoods extends Component {
         });
     };
 
-    createGoods = async(e)=>{
+    updateGoods = async(e)=>{
         e.preventDefault();
         const{goodsName, goodsPrice, goodsQuantity, status,description,goodsID,goodsImageName}=this.state;
         const GoodsVo = new FormData();
@@ -74,28 +106,28 @@ class CreateGoods extends Component {
         GoodsVo.append("goodsQuantity",goodsQuantity)
         GoodsVo.append("status",status)
         GoodsVo.append("description",description)
-        GoodsVo.append("goodsName",goodsName)
+        GoodsVo.append("goodsID",goodsID)
         GoodsVo.append("goodsImageName",goodsImageName)
         const form = e.currentTarget;
         console.log("form.checkValidity():", form.checkValidity());
         GoodsVo.append("file",form.file.files[0]);
         const formResponse = await axios.post(apiUrl,GoodsVo,{ withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
         console.log("formResponse:", formResponse);
-       
     };
 
-    
-
     render() {
-        const {goodsName,goodsPrice,goodsQuantity,status,description,goodsImageName}=this.state;
+        const {goodsName,goodsPrice,goodsQuantity,status,description,beverageGoods,goodsImageName}=this.state;
         return (
             <Container>
-                <Form onSubmit={this.createGoods}>
+                <Form onSubmit={this.updateGoods}> 
                 <Form.Group as={Col} xs={4} controlId="goodsName">
                         <Form.Label>商品名稱:</Form.Label>
-                        <Form.Control required type="text" placeholder="" value={goodsName} onChange={this.onChangeGoodsName}/>
-                        <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
-                        <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
+                        <Form.Control required as="select" defaultValue={goodsName} onChange={(g)=>this.onChangeGoodsInfo(JSON.parse(g.target.value))}>
+                        <option value={'0'}>請選擇</option>
+                        {beverageGoods.map(g=>
+                        <option key={g.goodsId} value={JSON.stringify(g)}> {`${g.goodsId}:${g.goodsName}`}</option> 
+                        )}
+                        </Form.Control>                       
                     </Form.Group>
                     <Form.Group as={Col} xs={4} controlId="goodsPrice">
                         <Form.Label>商品價格:</Form.Label>
@@ -109,7 +141,18 @@ class CreateGoods extends Component {
                         <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
                         <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
                     </Form.Group>     
-                    <Form.Group as={Col} id="goodsStatus">
+                    {/* <Form.Group as={Col} xs={4} controlId="formGoodsStatus">
+                        <Form.Label>商品狀態:</Form.Label>
+                        <Form.Control required as="select" defaultValue={status} onChange={this.onChangeGoodsStatus}>
+                        <option value={'2'}>請選擇</option>
+                        <option value={'1'}>上架</option>
+                        <option value={'0'}>下架</option>
+                        </Form.Control>
+                        <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
+                        <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
+                    </Form.Group> */}
+                    <Form.Group as={Col}id="goodsStatus">
+                    <Form.Label>商品狀態：</Form.Label>
                     <Form.Check inline required name='radioName' type="radio" label="上架"
                         value={'1'} onChange={this.onChangeGoodsStatus} checked={status === '1'} />
                     <Form.Check inline required name='radioName' type="radio" label="下架"
@@ -117,7 +160,7 @@ class CreateGoods extends Component {
                 </Form.Group>
                     <Form.Group as={Col} xs={12} controlId="goodsDescription">
                         <Form.Label>商品描述:</Form.Label>
-                        <Form.Control  type="text"  placeholder="" defaultValue={description} onChange={this.onChangeDescription}/>
+                        <Form.Control required type="text"  placeholder="" value={description} onChange={this.onChangeDescription}/>
                         <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
                         <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
                     </Form.Group>
@@ -131,8 +174,8 @@ class CreateGoods extends Component {
                             <Form.Control.Feedback type="invalid">未選擇檔案!</Form.Control.Feedback>
                         </Form.File>
                     </Form.Group>
-                    <Form.Group as={Col}>
-                    <Button variant="primary" type="submit">新增商品</Button>
+                    <Form.Group as={Col} xs={4}>
+                    <Button variant="primary" type="submit">更新</Button>
                     </Form.Group>
                       </Form>
                 </Container>
@@ -140,4 +183,8 @@ class CreateGoods extends Component {
     }
 }
 
-export default CreateGoods;
+UpdateGood.propTypes = {
+
+};
+
+export default UpdateGood;
