@@ -9,7 +9,9 @@ import Button from 'react-bootstrap/Button';
 const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/createGoods';
 
 class CreateGoods extends Component {   
-    state = {
+    constructor(props) {
+        super(props);
+    this.state = {
         goodsId:0,
         goodsName: '',
         goodsPrice: '',
@@ -29,7 +31,17 @@ class CreateGoods extends Component {
             "description": ''
         }],
     }
+}
+componentDidMount() {
+    
+}
 
+componentDidUpdate(prevProps, prevState) {
+}
+
+componentWillUnmount() {
+
+}
     onChangeGoodsName=(e)=>{
         
         this.setState({
@@ -124,7 +136,7 @@ class CreateGoods extends Component {
                     <Form.Group as={Col} xs={4}>
                         <Form.File id="formcheck-api-custom" custom>
                             <Form.File.Input required name="file" onChange={this.onChangeFile} />
-                            <Form.File.Label data-browse="Upload Button">
+                            <Form.File.Label data-browse="瀏覽">
                                 {goodsImageName ? goodsImageName : '選擇要上傳的檔案...'}
                             </Form.File.Label>
                             <Form.Control.Feedback type="valid">已選擇檔案!</Form.Control.Feedback>
@@ -139,5 +151,9 @@ class CreateGoods extends Component {
         );
     }
 }
+
+CreateGoods.propTypes = {
+
+};
 
 export default CreateGoods;

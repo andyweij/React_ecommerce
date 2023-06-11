@@ -8,39 +8,46 @@ import Button from 'react-bootstrap/Button';
 
 const queryUrl='http://localhost:8086/ecommerce/ecommerce/BackendController/queryAllGoods';
 const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/updateGoods';
-
+const querygoodUrl='http://localhost:8086/ecommerce/ecommerce/BackendController/queryGoodsByID';
 
 class UpdateGood extends Component {
-     state = {      
-        goodsID:0,
-        goodsName: '',
-        goodsPrice: '0',
-        goodsQuantity: 0,
-        status: '',
-        description:'',
-        goodsImageName: '',
-        imgUrl: '',
-        beverageGoods: [{
-            "goodsId": '',
-            "goodsName": '',
-            "goodsPrice": '',
-            "goodsQuantity": '',
-            "goodsImageName": '',
-            "status": '',
-            "description": ''
-        }],
-    }
+     
     constructor(props) {
         super(props);
-        this.goodsList()
+        this.state = {      
+            goodsID:0,
+            goodsName: '',
+            goodsPrice: '0',
+            goodsQuantity: 0,
+            status: '',
+            description:'',
+            goodsImageName: '',
+            imgUrl: '',
+            beverageGoods: [{
+                "goodsId": '',
+                "goodsName": '',
+                "goodsPrice": '',
+                "goodsQuantity": '',
+                "goodsImageName": '',
+                "status": '',
+                "description": ''
+            }],
+        }
     }
 
     componentDidMount() {
-
+        this.goodsList();
     }
 
     componentDidUpdate(prevProps, prevState) {
-
+        console.log("prevState & this:",prevState.goodsID !== this.state.goodsID);
+        console.log("123", this.state.goodsID!==0);
+        console.log("prevState goodsID", prevState.goodsID);
+        console.log("goodsID", this.state.goodsID);
+        if(prevState.goodsID !== this.state.goodsID && this.state.goodsID!==undefined){
+            this.queryGoodsByID(this.state.goodsID);
+            console.log("prevState goodsID2:", prevState.goodsID !== this.state.goodsID);
+        }
     }
 
     componentWillUnmount() {
@@ -60,14 +67,8 @@ class UpdateGood extends Component {
         
         this.setState({
             goodsID:e.goodsId,
-            goodsName:e.goodsName,
-            goodsPrice:e.goodsPrice,
-            goodsQuantity:e.goodsQuantity,
-            description:e.description,
-            status:e.status,
-            
         });
-        console.log("status:",this.state.goodsID);
+        console.log("onChangeGoodsInfo",this.state.goodsID)
     };
     onChangeGoodsPrice=(e)=>{
         this.setState({
@@ -85,7 +86,6 @@ class UpdateGood extends Component {
         this.setState({
             status:e.target.value
         });
-        console.log("status",this.state.status);
     }
     onChangeDescription=(e)=>{
         this.setState({
@@ -97,7 +97,17 @@ class UpdateGood extends Component {
             goodsImageName:e.target.files[0].name
         });
     };
-
+    queryGoodsByID=async(goodsID)=>{
+        const params =  {goodsID}
+        const goodsdataByID = await axios.get(querygoodUrl,{params}).then(rs => rs.data);
+        this.setState({
+            goodsName:goodsdataByID.goodsName,
+            goodsPrice:goodsdataByID.goodsPrice,
+            goodsQuantity:goodsdataByID.goodsQuantity,
+            description:goodsdataByID.description,
+            status:goodsdataByID.status,         
+        });
+    }
     updateGoods = async(e)=>{
         e.preventDefault();
         const{goodsName, goodsPrice, goodsQuantity, status,description,goodsID,goodsImageName}=this.state;
@@ -107,10 +117,12 @@ class UpdateGood extends Component {
         GoodsVo.append("status",status)
         GoodsVo.append("description",description)
         GoodsVo.append("goodsID",goodsID)
+        GoodsVo.append("goodsName",goodsName)
         GoodsVo.append("goodsImageName",goodsImageName)
         const form = e.currentTarget;
-        console.log("form.checkValidity():", form.checkValidity());
-        GoodsVo.append("file",form.file.files[0]);
+        console.log("file:",form.file.files[0]===undefined)
+        console.log("file:",form.file.files[0])
+        {form.file.files[0]!=undefined && GoodsVo.append("file",form.file.files[0])};
         const formResponse = await axios.post(apiUrl,GoodsVo,{ withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
         console.log("formResponse:", formResponse);
     };
@@ -123,7 +135,7 @@ class UpdateGood extends Component {
                 <Form.Group as={Col} xs={4} controlId="goodsName">
                         <Form.Label>商品名稱:</Form.Label>
                         <Form.Control required as="select" defaultValue={goodsName} onChange={(g)=>this.onChangeGoodsInfo(JSON.parse(g.target.value))}>
-                        <option value={'0'}>請選擇</option>
+                        <option value={0}>請選擇</option>
                         {beverageGoods.map(g=>
                         <option key={g.goodsId} value={JSON.stringify(g)}> {`${g.goodsId}:${g.goodsName}`}</option> 
                         )}
@@ -141,16 +153,6 @@ class UpdateGood extends Component {
                         <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
                         <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
                     </Form.Group>     
-                    {/* <Form.Group as={Col} xs={4} controlId="formGoodsStatus">
-                        <Form.Label>商品狀態:</Form.Label>
-                        <Form.Control required as="select" defaultValue={status} onChange={this.onChangeGoodsStatus}>
-                        <option value={'2'}>請選擇</option>
-                        <option value={'1'}>上架</option>
-                        <option value={'0'}>下架</option>
-                        </Form.Control>
-                        <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
-                        <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
-                    </Form.Group> */}
                     <Form.Group as={Col}id="goodsStatus">
                     <Form.Label>商品狀態：</Form.Label>
                     <Form.Check inline required name='radioName' type="radio" label="上架"
@@ -166,8 +168,8 @@ class UpdateGood extends Component {
                     </Form.Group>
                     <Form.Group as={Col} xs={4}>
                         <Form.File id="formcheck-api-custom" custom>
-                            <Form.File.Input required name="file" onChange={this.onChangeFile} />
-                            <Form.File.Label data-browse="Upload Button">
+                            <Form.File.Input  name="file" onChange={this.onChangeFile} />
+                            <Form.File.Label data-browse="瀏覽">
                                 {goodsImageName ? goodsImageName : '選擇要上傳的檔案...'}
                             </Form.File.Label>
                             <Form.Control.Feedback type="valid">已選擇檔案!</Form.Control.Feedback>
