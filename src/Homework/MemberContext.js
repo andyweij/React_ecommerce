@@ -1,8 +1,8 @@
-import React, {createContext} from 'react';
+import  {createContext} from 'react';
 
-const MemberContext = createContext({
-    isLogin: false,
+const searchContext = createContext({
+    searchKeyWord: ()=>{}
     
 });
-
-export default MemberContext;
+export const { Provider, Consumer }=searchContext;
+export default searchContext;

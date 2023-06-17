@@ -1,0 +1,545 @@
+import React, { Component ,useContext} from 'react';
+import PropTypes from 'prop-types';
+import axios from "axios";
+import BackEndMenu from './BackEndMenu';
+import { Container, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import CardDeck from 'react-bootstrap/CardDeck';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
+import Pagination from 'react-bootstrap/Pagination';
+import Modal from 'react-bootstrap/Modal';
+
+
+const queryUrl = 'http://localhost:8086/ecommerce/ecommerce/FrontendController/queryGoodsData';
+const addCartUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/addCartGoods';
+
+
+class ProductPage extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            show: false,
+            currentPageNo: 1,
+            endPage: 0,
+            pageDataSize: 6,
+            pagesIconSize: 5,
+            goodsImageName: '',
+            goodsID: 0,
+            goodsName: '',
+            goodsPrice: 0,
+            goodsQuantity: 0,
+            genericPageable: {
+                "currentPageNo": 0,
+                "endPage": 0,
+                "pageDataSize": 0,
+                "pagesIconSize": 0,
+                "pagination": [{}]
+            },
+            orderGoodList: [{
+                "description": '',
+                "goodsId": 0,
+                "goodsImageName": '',
+                "goodsName": '',
+                "goodsPrice": 0,
+                "goodsQuantity": 0,
+                "status": ''
+            }]
+        }
+    }
+
+
+    componentDidMount() {
+        this.goodsList();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+
+    }
+
+    componentWillUnmount() {
+
+    }
+
+    goodsList = async () => {
+        const { currentPageNo, pageDataSize, pagesIconSize } = this.state
+        const params = { currentPageNo, pageDataSize, pagesIconSize };
+        const goodsdata = await axios.get(queryUrl, { params }).then(rs => rs.data);
+        console.log("orderGoodList:", goodsdata);
+        this.setState({
+            orderGoodList: goodsdata.orderGoodList,
+            genericPageable: goodsdata.genericPageable
+        });
+
+    };
+
+    onChangeQuantity = (g, n, p, index) => {
+        this.setState({
+            show: true,
+            goodsID: g,
+            goodsName: n,
+            goodsPrice: p,
+            goodsQuantity: document.getElementsByName("buyQuantity")[index].value
+        }, () => {
+            this.addGoodsCart();
+        })
+    }
+    addGoodsCart = async () => {
+        const { goodsQuantity, goodsID, goodsName, goodsPrice } = this.state
+
+        console.log("goodsID", goodsID)
+        console.log("goodsQuantity", goodsQuantity)
+        // goodsID=e
+        // goodsQuantity= document.getElementsByName("buyQuantity")[index].value
+        if (this.state.goodsQuantity != 0 || this.state.goodsQuantity != "") {
+            const GoodsVo = { goodsID, goodsQuantity, goodsName, goodsPrice }
+            const goodsdata = await axios.post(addCartUrl, GoodsVo, { withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
+            console.log(goodsdata)
+
+        }
+    }
+    searchKeyWord=async(searchKeyWord)=>{
+            console.log(searchKeyWord)
+    }
+    onChangePage = (e) => {
+        this.setState(state => ({
+            currentPageNo: e
+        }),
+            () => {
+                this.goodsList();
+            })
+    }
+    handleClose = () => {
+        this.setState({
+            show: false
+        })
+    }
+    render() {
+        const { orderGoodList, genericPageable, show } = this.state;
+        const {searchKeyWord}=this.props
+        return (
+            <Container>
+               
+                <Form.Row as={Col} xs={12}>
+                    {orderGoodList.map((g, index) =>
+
+                        <CardDeck key={g.goodsId}>
+                            <Card style={{ width: '18rem' }}>
+
+                                <Card.Img variant="top" src={`http://localhost:8086/ecommerce/DrinksImage/${g.goodsImageName}`} />
+                                <Card.Body>
+                                    <Card.Title>{g.goodsName}</Card.Title>
+                                    <Card.Text>
+                                        {g.description}
+                                    </Card.Text>
+                                    <Card.Text>
+                                        商品價格：{g.goodsPrice} NT$
+                                    </Card.Text>
+                                    <InputGroup>
+                                        <FormControl type='number' name="buyQuantity" max={g.goodsQuantity} min={0} placeholder='購買數量' /> <InputGroup.Text> / {g.goodsQuantity}瓶</InputGroup.Text>
+                                        <Button variant="primary" onClick={() => this.onChangeQuantity(g.goodsId, g.goodsName, g.goodsPrice, index)}>加入購物車</Button>
+                                    </InputGroup>
+                                    <Modal show={show} id="myModal" onHide={this.handleClose}>
+                                        <Modal.Header closeButton>
+                                            <Modal.Title>Modal title</Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            加入購物車！
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={this.handleClose}>
+                                                Close
+                                            </Button>
+                                        </Modal.Footer>
+                                    </Modal>
+
+                                </Card.Body>
+                            </Card>
+                        </CardDeck>
+
+                    )}
+                </Form.Row>
+                <Pagination size='sm'>
+                    <Pagination.First>{genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true}>{'<<'}</Button> :
+                        <Button disabled={false} onClick={() => this.onChangePage(1)}>{'<<'}</Button>}</Pagination.First>
+                    <Pagination.Prev >{genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true} onClick={() => this.onChangePage(genericPageable.currentPageNo - 1)}>{'<'}</Button> :
+                        <Button disabled={false} onClick={() => this.onChangePage(genericPageable.currentPageNo - 1)}>{'<'}</Button>}</Pagination.Prev>
+                    {genericPageable.pagination.length === 1 ? '' : genericPageable.pagination.map((p, index) =>
+                        p === genericPageable.currentPageNo ?
+
+                            <Pagination.Item key={p}><Button disabled={true} onClick={() => this.onChangePage(p)}>{`${p}`}</Button></Pagination.Item> :
+                            <Pagination.Item key={p}><Button disabled={false} onClick={() => this.onChangePage(p)}>{`${p}`}</Button></Pagination.Item>
+                    )}
+                    <Pagination.Next >{genericPageable.currentPageNo >= genericPageable.endPage ?
+                        <Button disabled={true} onClick={() => this.onChangePage(genericPageable.currentPageNo + 1)}>{'>'}</Button> :
+                        <Button disabled={false} onClick={() => this.onChangePage(genericPageable.currentPageNo + 1)}>{'>'}</Button>}
+                    </Pagination.Next>
+                    <Pagination.Last >{genericPageable.currentPageNo >= genericPageable.endPage ?
+                        <Button disabled={true} onClick={() => this.onChangePage(genericPageable.endPage)}>{'>>'}</Button> :
+                        <Button disabled={false} onClick={() => this.onChangePage(genericPageable.endPage)}>{'>>'}</Button>}</Pagination.Last>
+                </Pagination>
+            </Container>
+
+        );
+    }
+}
+export default ProductPage;
+
+
+import React, { Component ,useContext, useEffect, useState} from 'react';
+import PropTypes from 'prop-types';
+import axios from "axios";
+import BackEndMenu from './BackEndMenu';
+import { Container, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import CardDeck from 'react-bootstrap/CardDeck';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
+import Pagination from 'react-bootstrap/Pagination';
+import Modal from 'react-bootstrap/Modal';
+
+
+const queryUrl = 'http://localhost:8086/ecommerce/ecommerce/FrontendController/queryGoodsData';
+const addCartUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/addCartGoods';
+
+
+const ProductPage =()=>{
+    const [goodsData,setGoodsData]=useState({
+        show: false,
+        currentPageNo: 1,
+        endPage: 0,
+        pageDataSize: 6,
+        pagesIconSize: 5,
+        goodsImageName: '',
+        goodsID: 0,
+        goodsName: '',
+        goodsPrice: 0,
+        goodsQuantity: 0,
+        genericPageable: {
+            "currentPageNo": 0,
+            "endPage": 0,
+            "pageDataSize": 0,
+            "pagesIconSize": 0,
+            "pagination": [{}]
+        },
+        orderGoodList: [{
+            "description": '',
+            "goodsId": 0,
+            "goodsImageName": '',
+            "goodsName": '',
+            "goodsPrice": 0,
+            "goodsQuantity": 0,
+            "status": ''
+        }]
+    })
+
+
+useEffect(()=>{
+    goodsList();
+},[goodsData.currentPageNo])
+
+    const goodsList = async () => {
+        const { currentPageNo, pageDataSize, pagesIconSize } = this.state
+        const params = { currentPageNo, pageDataSize, pagesIconSize };
+        const goodsdata = await axios.get(queryUrl, { params }).then(rs => rs.data);
+        console.log("orderGoodList:", goodsdata);
+        setGoodsData({
+            orderGoodList: goodsdata.orderGoodList,
+            genericPageable: goodsdata.genericPageable
+        });
+
+    };
+
+    const onChangeQuantity = (g, n, p, index) => {
+        setGoodsData({
+            show: true,
+            goodsID: g,
+            goodsName: n,
+            goodsPrice: p,
+            goodsQuantity: document.getElementsByName("buyQuantity")[index].value
+        }, () => {
+            addGoodsCart();
+        })
+    }
+    const addGoodsCart = async () => {
+        const { goodsQuantity, goodsID, goodsName, goodsPrice } = this.state
+
+        console.log("goodsID", goodsID)
+        console.log("goodsQuantity", goodsQuantity)
+        // goodsID=e
+        // goodsQuantity= document.getElementsByName("buyQuantity")[index].value
+        if (this.state.goodsQuantity != 0 || this.state.goodsQuantity != "") {
+            const GoodsVo = { goodsID, goodsQuantity, goodsName, goodsPrice }
+            const goodsdata = await axios.post(addCartUrl, GoodsVo, { withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
+            console.log(goodsdata)
+
+        }
+    }
+    const searchKeyWord=async(searchKeyWord)=>{
+            console.log(searchKeyWord)
+    }
+    const  onChangePage = (e) => {
+        setGoodsData((g) => ({
+            ...g,
+            currentPageNo: e
+        })
+            )
+    }
+    const handleClose = () => {
+        this.setState({
+            show: false
+        })
+    }
+
+        return (
+            <Container>
+                <Form.Row as={Col} xs={12}>
+                    {goodsData.orderGoodList.map((g, index) =>
+                        <CardDeck key={g.goodsId}>
+                            <Card style={{ width: '18rem' }}>
+
+                                <Card.Img variant="top" src={`http://localhost:8086/ecommerce/DrinksImage/${g.goodsImageName}`} />
+                                <Card.Body>
+                                    <Card.Title>{g.goodsName}</Card.Title>
+                                    <Card.Text>
+                                        {g.description}
+                                    </Card.Text>
+                                    <Card.Text>
+                                        商品價格：{g.goodsPrice} NT$
+                                    </Card.Text>
+                                    <InputGroup>
+                                        <FormControl type='number' name="buyQuantity" max={g.goodsQuantity} min={0} placeholder='購買數量' /> <InputGroup.Text> / {g.goodsQuantity}瓶</InputGroup.Text>
+                                        <Button variant="primary" onClick={onChangeQuantity(g.goodsId, g.goodsName, g.goodsPrice, index)}>加入購物車</Button>
+                                    </InputGroup>
+                                    <Modal show={goodsData.show} id="myModal" onHide={handleClose}>
+                                        <Modal.Header closeButton>
+                                            <Modal.Title>Modal title</Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            加入購物車！
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={handleClose}>
+                                                Close
+                                            </Button>
+                                        </Modal.Footer>
+                                    </Modal>
+
+                                </Card.Body>
+                            </Card>
+                        </CardDeck>
+
+                    )}
+                </Form.Row>
+                <Pagination>
+                    <Pagination.First>{goodsData.genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true}>{'<<'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(1)}>{'<<'}</Button>}</Pagination.First>
+                    <Pagination.Prev >{goodsData.genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.currentPageNo - 1)}>{'<'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.currentPageNo - 1)}>{'<'}</Button>}</Pagination.Prev>
+                    {goodsData.genericPageable.pagination.length === 1 ? '' : goodsData.genericPageable.pagination.map((p, index) =>
+                        p === goodsData.genericPageable.currentPageNo ?
+
+                            <Pagination.Item key={p}><Button disabled={true} onClick={onChangePage(p)}>{`${p}`}</Button></Pagination.Item> :
+                            <Pagination.Item key={p}><Button disabled={false} onClick={onChangePage(p)}>{`${p}`}</Button></Pagination.Item>
+                    )}
+                    <Pagination.Next >{goodsData.genericPageable.currentPageNo >= goodsData.genericPageable.endPage ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.currentPageNo + 1)}>{'>'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.currentPageNo + 1)}>{'>'}</Button>}
+                    </Pagination.Next>
+                    <Pagination.Last >{goodsData.genericPageable.currentPageNo >= goodsData.genericPageable.endPage ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.endPage)}>{'>>'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.endPage)}>{'>>'}</Button>}</Pagination.Last>
+                </Pagination>
+            </Container>
+
+        );
+    }
+
+
+
+export default ProductPage;
+
+
+
+
+
+0618
+
+import React, { Component ,useContext, useEffect, useState} from 'react';
+import PropTypes from 'prop-types';
+import axios from "axios";
+import BackEndMenu from './BackEndMenu';
+import { Container, Row, Col, InputGroup, FormControl } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import CardDeck from 'react-bootstrap/CardDeck';
+import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
+import Pagination from 'react-bootstrap/Pagination';
+import Modal from 'react-bootstrap/Modal';
+
+
+const queryUrl = 'http://localhost:8086/ecommerce/ecommerce/FrontendController/queryGoodsData';
+const addCartUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/addCartGoods';
+
+
+const ProductPage =()=>{
+    const [goodsData,setGoodsData]=useState({
+        show: false,
+        currentPageNo: 1,
+        endPage: 0,
+        pageDataSize: 6,
+        pagesIconSize: 5,
+        goodsImageName: '',
+        goodsID: 0,
+        goodsName: '',
+        goodsPrice: 0,
+        goodsQuantity: 0,
+        genericPageable: {
+            "currentPageNo": 0,
+            "endPage": 0,
+            "pageDataSize": 0,
+            "pagesIconSize": 0,
+            "pagination": [{}]
+        },
+        orderGoodList: [{
+            "description": '',
+            "goodsId": 0,
+            "goodsImageName": '',
+            "goodsName": '',
+            "goodsPrice": 0,
+            "goodsQuantity": 0,
+            "status": ''
+        }]
+    })
+
+
+useEffect(()=>{
+    goodsList();
+},[goodsData.currentPageNo])
+
+    const goodsList = async () => {
+        // const { currentPageNo, pageDataSize, pagesIconSize } = this.state
+        const params = [goodsData.currentPageNo, goodsData.pageDataSize, goodsData.pagesIconSize];
+        const goodsdatars = await axios.get(queryUrl, { params }).then(rs => rs.data);
+        // console.log("orderGoodList:", goodsdata);
+        setGoodsData({
+            orderGoodList: goodsdatars.orderGoodList,
+            genericPageable: goodsdatars.genericPageable
+        });
+
+    };
+
+    const onChangeQuantity = (g, n, p, index) => {
+        setGoodsData({
+            show: true,
+            goodsID: g,
+            goodsName: n,
+            goodsPrice: p,
+            // goodsQuantity: document.getElementsByName("buyQuantity")[index].value
+        })
+            addGoodsCart(goodsData);
+        
+    }
+    const addGoodsCart = async (goodsData) => {
+        // const { goodsQuantity, goodsID, goodsName, goodsPrice } = this.state
+
+        // console.log("goodsID", goodsID)
+        // console.log("goodsQuantity", goodsQuantity)
+        // goodsID=e
+        // goodsQuantity= document.getElementsByName("buyQuantity")[index].value
+        if (goodsData.goodsQuantity != 0 || goodsData.goodsQuantity != "") {
+            const GoodsVo = [goodsData.goodsID, goodsData.goodsQuantity, goodsData.goodsName, goodsData.goodsPrice ]
+            const goodsdata = await axios.post(addCartUrl, GoodsVo, { withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
+            console.log(goodsdata)
+
+        }
+    }
+    const searchKeyWord=async(searchKeyWord)=>{
+            console.log(searchKeyWord)
+    }
+    const  onChangePage = (e) => {
+        setGoodsData((g) => ({
+            ...g,
+            currentPageNo: e
+        })
+            )
+    }
+    const handleClose = () => {
+        setGoodsData({
+            show: false
+        })
+    }
+
+        return (
+            <Container>
+                <Form.Row as={Col} xs={12}>
+                    {goodsData.orderGoodList.map((g, index) =>
+                        <CardDeck key={g.goodsId}>
+                            <Card style={{ width: '18rem' }}>
+
+                                <Card.Img variant="top" src={`http://localhost:8086/ecommerce/DrinksImage/${g.goodsImageName}`} />
+                                <Card.Body>
+                                    <Card.Title>{g.goodsName}</Card.Title>
+                                    <Card.Text>
+                                        {g.description}
+                                    </Card.Text>
+                                    <Card.Text>
+                                        商品價格：{g.goodsPrice} NT$
+                                    </Card.Text>
+                                    <InputGroup>
+                                        <FormControl type='number' name="buyQuantity" max={g.goodsQuantity} min={0} placeholder='購買數量' /> <InputGroup.Text> / {g.goodsQuantity}瓶</InputGroup.Text>
+                                        <Button variant="primary" onClick={onChangeQuantity(g.goodsId, g.goodsName, g.goodsPrice, index)}>加入購物車</Button>
+                                    </InputGroup>
+                                    <Modal show={goodsData.show} id="myModal" onHide={handleClose}>
+                                        <Modal.Header closeButton>
+                                            <Modal.Title>Modal title</Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            加入購物車！
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={handleClose}>
+                                                Close
+                                            </Button>
+                                        </Modal.Footer>
+                                    </Modal>
+
+                                </Card.Body>
+                            </Card>
+                        </CardDeck>
+
+                    )}
+                </Form.Row>
+                <Pagination>
+                    <Pagination.First>{goodsData.genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true}>{'<<'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(1)}>{'<<'}</Button>}</Pagination.First>
+                    <Pagination.Prev >{goodsData.genericPageable.currentPageNo === 1 ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.currentPageNo - 1)}>{'<'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.currentPageNo - 1)}>{'<'}</Button>}</Pagination.Prev>
+                    {goodsData.genericPageable.pagination.length === 1 ? '' : goodsData.genericPageable.pagination.map((p, index) =>
+                        p === goodsData.genericPageable.currentPageNo ?
+
+                            <Pagination.Item key={p}><Button disabled={true} onClick={onChangePage(p)}>{`${p}`}</Button></Pagination.Item> :
+                            <Pagination.Item key={p}><Button disabled={false} onClick={onChangePage(p)}>{`${p}`}</Button></Pagination.Item>
+                    )}
+                    <Pagination.Next >{goodsData.genericPageable.currentPageNo >= goodsData.genericPageable.endPage ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.currentPageNo + 1)}>{'>'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.currentPageNo + 1)}>{'>'}</Button>}
+                    </Pagination.Next>
+                    <Pagination.Last >{goodsData.genericPageable.currentPageNo >= goodsData.genericPageable.endPage ?
+                        <Button disabled={true} onClick={onChangePage(goodsData.genericPageable.endPage)}>{'>>'}</Button> :
+                        <Button disabled={false} onClick={onChangePage(goodsData.genericPageable.endPage)}>{'>>'}</Button>}</Pagination.Last>
+                </Pagination>
+            </Container>
+
+        );
+    }
+
+
+
+export default ProductPage;
