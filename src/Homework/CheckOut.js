@@ -1,21 +1,20 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef ,useContext } from 'react'
 import { Container, Form, Button, Col} from 'react-bootstrap';
 import {useNavigate} from 'react-router-dom'
 import axios from 'axios';
+import checkContext from './MemberContext';
 
 const checkOutUrl = 'http://localhost:8086/ecommerce/ecommerce/FrontendController/checkoutGoods';
 const clearCartUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/clearCartGoods';
 const CheckOut = () => {
 
   const navigate = useNavigate(); 
-
+  // const {checkResult} =useContext(checkContext);
   const [customer, setCustomer] = useState(
-    {
-    cusName: '',
+    {cusName:'',
     homeNumber: '',
     mobileNumber: '',
     orderAddr: '',
-    inputMoney: 0,
     creditCardNo: ['']
   })
   const[checkOutResult,setCheckOutResult]=useState(
@@ -31,8 +30,6 @@ const CheckOut = () => {
 'goodsPrice':0
     }]}
     )
-  const creditRefs = useRef([]);
-  // const [inputMoney,setInputMoney]=useState({money:0});
   useEffect(() => {
 
   }, [])
@@ -50,13 +47,6 @@ const CheckOut = () => {
     }))
     console.log(customer)
   }
-  const onChangeCusName = (e) => {
-    setCustomer((cus) => ({
-      ...cus,
-      cusName:e.target.value
-    }))
-    console.log(customer)
-  }
   const onChangeHomeNumber = (e) => {
     
     setCustomer((cus) => ({
@@ -65,27 +55,25 @@ const CheckOut = () => {
     }))
     console.log(customer)
   }
-  const onSubmitCheckout = async (e) => {
+  const submitCheckout = async (e) => {
     e.preventDefault();
     console.log(customer)
     const rs = await axios.post(checkOutUrl,  customer, { withCredentials: true }, { timeout: 3000 }).then(rs => rs.data).catch(error => { console.log("error:", error) })
     setCheckOutResult(()=>rs)
+    // checkResult(rs);
     console.log("rs",rs)
-    console.log("checkOutResult",checkOutResult)
+    // console.log("checkOutResult",checkResult)
     clearCart(e);
-    navigate("/Complete", {state: rs});
+    completeRs(e,rs)
+    
+  }
+  const completeRs=(e,rs)=>{
+    navigate('/Complete', {state: rs});
   }
   const clearCart = async (e) => {
     e.preventDefault();
     const clearResult = await axios.delete(clearCartUrl, { withCredentials: true }, { timeout: 3000 }).then(rs => rs.data).catch(error => { console.log("error", error) })
     console.log(clearResult);
-  }
-  const onChangeinputMoney = (e) => {
-    setCustomer((cus) => ({
-      ...cus,
-      inputMoney: e.target.value
-    }))
-    console.log(customer)
   }
   const onChangeCreditCard = (e) => {
     const {value}=e.target
@@ -141,24 +129,18 @@ const CheckOut = () => {
       creditCardNo:[...cus.creditCardNo]   
     }))
     
-    creditRef3.current.focus()
+    
   }
   }
 
   const creditRef = useRef();
   const creditRef1 = useRef();
   const creditRef2 = useRef();
-  const creditRef3 = useRef();
+  
   return (
     <Container>
-      <Form onSubmit={onSubmitCheckout}>
+      <Form >
         <Form.Row>
-        <Form.Group as={Col} xs={4} controlId="cusName">
-          <Form.Label>客戶姓名:</Form.Label>
-          <Form.Control required type="text" placeholder="" value={customer.cusName} onChange={onChangeCusName} />
-          <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
-          <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
-        </Form.Group>
         <Form.Group as={Col} xs={4} controlId="homeNumber">
           <Form.Label>郵遞區號:</Form.Label>
           <Form.Control required type="text" placeholder="" value={customer.homeNumber} onChange={onChangeHomeNumber} />
@@ -180,24 +162,14 @@ const CheckOut = () => {
           <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
         </Form.Group>
         </Form.Row>
-        {/* <Form.Row>
-        <Form.Group as={Col} xs={12} controlId="inputMoney">
-          <Form.Label>投入金額:</Form.Label>
-          <Form.Control type="Number" placeholder="" value={customer.inputMoney} onChange={onChangeinputMoney} />
-          <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
-          <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
-        </Form.Group>
-        </Form.Row> */}
         信用卡號:
         <Form.Row>
-          <Form.Group as={Col} xs={3} controlId="creditCard-1">
-            
+          <Form.Group as={Col} xs={3} controlId="creditCard-1">          
             <Form.Control type="Text" placeholder=""  maxLength={4} onChange={onChangeCreditCard} />
             <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
             <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
           </Form.Group>
-          <Form.Group as={Col} xs={3} controlId="creditCard-2">
-            
+          <Form.Group as={Col} xs={3} controlId="creditCard-2">            
             <Form.Control type="Text" placeholder="" maxLength={4} ref={creditRef} onChange={onChangeCreditCard2} />
             <Form.Control.Feedback>欄位正確!</Form.Control.Feedback>
             <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
@@ -213,9 +185,7 @@ const CheckOut = () => {
             <Form.Control.Feedback type="invalid">欄位錯誤!</Form.Control.Feedback>
           </Form.Group>
         </Form.Row>
-        <Form.Group as={Col}>
-          <Button variant="primary" type="submit" ref={creditRef3} onClick={onSubmitCheckout}>結帳</Button>
-        </Form.Group>
+       <Button variant="primary" type="submit" onClick={submitCheckout}>結帳</Button> 
       </Form>
       {/* {checkOutResult.orderGoodList.map((rs,index)=><div>{rs.goodsName}</div>)} */}
     </Container>

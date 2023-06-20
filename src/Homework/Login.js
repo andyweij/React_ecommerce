@@ -2,7 +2,6 @@ import React, { useEffect, useState, useContext } from 'react'
 import { Container, Form, Button, Col, Row } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import axios from 'axios';
-import memberContext from './MemberContext';
 
 const LoginUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/login';
 const checkLoginUrl = 'http://localhost:8086/ecommerce/ecommerce/MemberController/checkLogin';

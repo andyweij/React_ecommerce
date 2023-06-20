@@ -141,7 +141,7 @@ class ProductPage extends Component {
                                     </InputGroup>
                                     <Modal show={show} id="myModal" onHide={this.handleClose}>
                                         <Modal.Header closeButton>
-                                            <Modal.Title>Modal title</Modal.Title>
+                                            <Modal.Title></Modal.Title>
                                         </Modal.Header>
                                         <Modal.Body>
                                             加入購物車！

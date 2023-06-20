@@ -1,8 +1,8 @@
 import  {createContext} from 'react';
 
-const searchContext = createContext({
-    searchKeyWord: ()=>{}
+const checkContext = createContext({
+    checkResult: ()=>{}
     
 });
-export const { Provider, Consumer }=searchContext;
-export default searchContext;
+export const { Provider, Consumer }=checkContext;
+export default checkContext;

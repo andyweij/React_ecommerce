@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { Container, Row, Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-
+import Modal from 'react-bootstrap/Modal';
 const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/createGoods';
 
 class CreateGoods extends Component {   
@@ -21,6 +21,7 @@ class CreateGoods extends Component {
         goodsImageName: '',
         fileName:'',
         imgUrl: '',
+        show:false,
         beverageGoods: [{
             "goodsId": '',
             "goodsName": '',
@@ -92,14 +93,21 @@ componentWillUnmount() {
         console.log("form.checkValidity():", form.checkValidity());
         GoodsVo.append("file",form.file.files[0]);
         const formResponse = await axios.post(apiUrl,GoodsVo,{ withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
-        console.log("formResponse:", formResponse);
+        this.setState({
+            show:true
+        })
+
        
     };
-
+    handleClose = () => {
+        this.setState({
+            show: false
+        })
+    }
     
 
     render() {
-        const {goodsName,goodsPrice,goodsQuantity,status,description,goodsImageName}=this.state;
+        const {goodsName,goodsPrice,goodsQuantity,status,description,goodsImageName,show}=this.state;
         return (
             <Container>
                 <Form onSubmit={this.createGoods}>
@@ -146,6 +154,19 @@ componentWillUnmount() {
                     <Form.Group as={Col}>
                     <Button variant="primary" type="submit">新增商品</Button>
                     </Form.Group>
+                    <Modal show={show} id="myModal" onHide={this.handleClose}>
+                                        <Modal.Header closeButton>
+                                            <Modal.Title></Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            商品新增成功！
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={this.handleClose}>
+                                                Close
+                                            </Button>
+                                        </Modal.Footer>
+                                    </Modal>
                       </Form>
                 </Container>
         );

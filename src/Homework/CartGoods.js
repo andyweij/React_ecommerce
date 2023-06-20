@@ -22,10 +22,10 @@ function CartGoods() {
     }]
   )
 const [payprice,setPayprice]=useState()
+
   useEffect(() => {
     queryCartGoods(cartGoodsUrl);
-  }, []
-  )
+  }, [cartGoodsInfo.length])
 
   const queryCartGoods = async (cartGoodsUrl) => {
     const goodsInfo = await axios.get(cartGoodsUrl, { withCredentials: true }, { timeout: 3000 }).then(rs => rs.data).catch(error => { console.log("error:", error) });
@@ -34,7 +34,7 @@ const [payprice,setPayprice]=useState()
     const totalprice=goodsInfo.reduce((sum,obj)=>sum+obj.goodsQuantity*obj.goodsPrice,0)
     setPayprice(totalprice)
     
-    console.log("payprice:", payprice)
+    console.log("cartGoodsInfo.length:", cartGoodsInfo.length)
     console.log("totalprice:", totalprice)    
   }
   // const TotalPriceValue=((goodsPriceArr)=>{
@@ -55,6 +55,7 @@ const [payprice,setPayprice]=useState()
   const clearCart = async (e) => {
     e.preventDefault();
     const clearResult = await axios.delete(clearCartUrl, { withCredentials: true }, { timeout: 3000 }).then(rs => rs.data).catch(error => { console.log("error", error) })
+    setCartGoodsInfo(()=>clearResult)
     console.log(clearResult);
   }
   return (
@@ -77,7 +78,7 @@ const [payprice,setPayprice]=useState()
                 <td>{index + 1}</td>
                 <td>{g.goodsName}</td>
                 <td>{g.goodsPrice}</td>
-                <td><input type='number' value={g.goodsQuantity} onChange={(e) => { onChaneQuantity(index, e) }}></input></td>
+                <td>{g.goodsQuantity}</td>
               </tr>
             )}
           

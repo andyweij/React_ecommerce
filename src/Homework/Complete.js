@@ -18,10 +18,6 @@ function Complete() {
         setPayprice(totalprice)
     })
 
-    const retrunProducts = () => {
-
-    }
-
     return (
         <Container>
             <h4>

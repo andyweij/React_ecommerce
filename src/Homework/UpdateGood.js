@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { Container, Row, Col } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-
+import Modal from 'react-bootstrap/Modal';
 const queryUrl='http://localhost:8086/ecommerce/ecommerce/BackendController/queryAllGoods';
 const apiUrl = 'http://localhost:8086/ecommerce/ecommerce/BackendController/updateGoods';
 const querygoodUrl='http://localhost:8086/ecommerce/ecommerce/BackendController/queryGoodsByID';
@@ -23,6 +23,9 @@ class UpdateGood extends Component {
             description:'',
             goodsImageName: '',
             imgUrl: '',
+            updateStatus:false,
+            updateMsg:'',
+            show: false,
             beverageGoods: [{
                 "goodsId": '',
                 "goodsName": '',
@@ -40,13 +43,15 @@ class UpdateGood extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log("prevState & this:",prevState.goodsID !== this.state.goodsID);
-        console.log("123", this.state.goodsID!==0);
-        console.log("prevState goodsID", prevState.goodsID);
-        console.log("goodsID", this.state.goodsID);
-        if(prevState.goodsID !== this.state.goodsID && this.state.goodsID!==undefined){
+        if(prevState.goodsID !== this.state.goodsID &&this.state.goodsID!==undefined ){
+            this.queryGoodsByID(this.state.goodsID);            
+        }
+        if(prevState.updateStatus!==this.state.updateStatus){
+            this.setState({
+                updateStatus:false,
+                updateMsg:''
+            })
             this.queryGoodsByID(this.state.goodsID);
-            console.log("prevState goodsID2:", prevState.goodsID !== this.state.goodsID);
         }
     }
 
@@ -120,15 +125,32 @@ class UpdateGood extends Component {
         GoodsVo.append("goodsName",goodsName)
         GoodsVo.append("goodsImageName",goodsImageName)
         const form = e.currentTarget;
-        console.log("file:",form.file.files[0]===undefined)
-        console.log("file:",form.file.files[0])
+        // console.log("file:",form.file.files[0]===undefined)
+        // console.log("file:",form.file.files[0])
         {form.file.files[0]!=undefined && GoodsVo.append("file",form.file.files[0])};
         const formResponse = await axios.post(apiUrl,GoodsVo,{ withCredentials: true }, { timeout: 300000 }).then(rs => rs.data);
+        if(formResponse.goodsId==goodsID){
+        this.setState({
+            goodsName:formResponse.goodsName,
+            goodsPrice:formResponse.goodsPrice,
+            goodsQuantity:formResponse.goodsQuantity,
+            description:formResponse.description,
+            status:formResponse.status,
+            updateStatus:true,
+            updateMsg:'更新完成',
+            show:true,  
+        })
+    }
         console.log("formResponse:", formResponse);
     };
+    handleClose = () => {
+        this.setState({
+            show: false
+        })
+    }
 
     render() {
-        const {goodsName,goodsPrice,goodsQuantity,status,description,beverageGoods,goodsImageName}=this.state;
+        const {goodsName,goodsPrice,goodsQuantity,status,description,beverageGoods,goodsImageName,show}=this.state;
         return (
             <Container>
                 <Form onSubmit={this.updateGoods}> 
@@ -179,6 +201,19 @@ class UpdateGood extends Component {
                     <Form.Group as={Col} xs={4}>
                     <Button variant="primary" type="submit">更新</Button>
                     </Form.Group>
+                    <Modal show={show} id="myModal" onHide={this.handleClose}>
+                                        <Modal.Header closeButton>
+                                            <Modal.Title></Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            商品更新成功！
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={this.handleClose}>
+                                                Close
+                                            </Button>
+                                        </Modal.Footer>
+                                    </Modal>
                       </Form>
                 </Container>
         );
